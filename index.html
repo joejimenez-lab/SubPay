@@ -88,7 +88,7 @@
     <section class="max-w-4xl w-full floating-card rounded-3xl shadow-2xl p-10 relative z-10">
       <header class="text-center mb-10">
         <h1 class="text-6xl font-bold text-gray-900">Sub Pay Calculator</h1>
-        <p class="mt-4 text-lg text-gray-600">Calculate your total pay.</p>
+        <p id="typing-text" class="mt-4 text-lg text-gray-600"></p>
       </header>
 
        <form class="grid grid-cols-1 md:grid-cols-2 gap-6" aria-label="Pay input form">
@@ -146,6 +146,24 @@
       `;
       result.classList.remove('hidden');
     }
+
+    // Typewriter animation
+    window.addEventListener('DOMContentLoaded', () => {
+      const text = "Calculate your total pay.";
+      const el = document.getElementById('typing-text');
+      let i = 0;
+      const speed = 120;
+
+      function type() {
+        if (i < text.length) {
+          el.textContent += text.charAt(i);
+          i++;
+          setTimeout(type, speed);
+        }
+      }
+
+      type();
+    });
   </script>
 </body>
 </html>
