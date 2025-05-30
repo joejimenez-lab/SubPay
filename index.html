@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Substitute Teacher Pay Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #ecfeff, #e0f7fa, #ffffff);
+      color: #1e293b;
+      overflow-x: hidden;
+    }
+    .highlight {
+      color: #0f172a;
+      font-weight: 900;
+    }
+    .fancy-result {
+      background: linear-gradient(145deg, #ccfbf1, #99f6e4);
+      border-radius: 1.25rem;
+      animation: riseFade 1.2s ease-out;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(10px);
+    }
+    @keyframes riseFade {
+      from { opacity: 0; transform: translateY(60px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      letter-spacing: -1px;
+    }
+    .decorative-flare {
+      position: absolute;
+      top: -3rem;
+      right: -3rem;
+      width: 12rem;
+      height: 12rem;
+      background: radial-gradient(circle at center, #7dd3fc 0%, #38bdf8 60%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(50px);
+      opacity: 0.5;
+      z-index: 0;
+    }
+    .floating-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px) saturate(180%);
+      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .floating-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 40px 120px rgba(0, 0, 0, 0.25);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .fancy-result { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="min-h-screen p-6 flex items-center justify-center relative">
+    <div class="decorative-flare"></div>
+    <section class="max-w-4xl w-full floating-card rounded-3xl shadow-2xl p-10 relative z-10">
+      <header class="text-center mb-10">
+        <h1 class="text-6xl font-bold text-gray-900">Sub Pay Calculator</h1>
+        <p class="mt-4 text-lg text-gray-600">Calculate your total pay.</p>
+      </header>
+
+      <form class="grid grid-cols-1 md:grid-cols-2 gap-6" aria-label="Pay input form">
+        <div>
+          <label for="fullDayRate" class="block text-sm font-semibold text-gray-700 mb-1">💵 Full Day Rate ($)</label>
+          <input type="number" id="fullDayRate" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="e.g., 225">
+        </div>
+        <div>
+          <label for="halfDayRate" class="block text-sm font-semibold text-gray-700 mb-1">🕐 Half Day Rate ($)</label>
+          <input type="number" id="halfDayRate" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="e.g., 112.5">
+        </div>
+        <div>
+          <label for="fullDays" class="block text-sm font-semibold text-gray-700 mb-1">📅 Full Days Worked</label>
+          <input type="number" id="fullDays" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="e.g., 10">
+        </div>
+        <div>
+          <label for="halfDays" class="block text-sm font-semibold text-gray-700 mb-1">📆 Half Days Worked</label>
+          <input type="number" id="halfDays" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="e.g., 5">
+        </div>
+      </form>
+
+      <div class="text-center mt-8">
+        <button onclick="calculateSubPay()" class="bg-gradient-to-r from-teal-400 to-blue-500 text-white font-semibold py-3 px-10 rounded-full text-lg shadow-xl hover:scale-105 transition-transform">✨ Calculate Total</button>
+      </div>
+
+      <article id="subResult" class="fancy-result mt-10 text-center text-xl font-medium text-gray-800 hidden p-6" aria-live="polite"></article>
+
+      <footer class="mt-12 text-center text-sm text-gray-400">
+        Designed by Joe Jimenez
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    function calculateSubPay() {
+      const fullRate = parseFloat(document.getElementById('fullDayRate').value) || 0;
+      const halfRate = parseFloat(document.getElementById('halfDayRate').value) || 0;
+      const fullDays = parseInt(document.getElementById('fullDays').value) || 0;
+      const halfDays = parseInt(document.getElementById('halfDays').value) || 0;
+
+      const fullTotal = fullRate * fullDays;
+      const halfTotal = halfRate * halfDays;
+      const combinedTotal = fullTotal + halfTotal;
+      const totalWorkedDays = fullDays + halfDays;
+
+      const result = document.getElementById('subResult');
+      result.innerHTML = `
+        <div class="mb-4 text-3xl font-bold tracking-tight">Total Pay: <span class="highlight">$${combinedTotal.toFixed(2)}</span></div>
+        <div class="text-lg">Total Calendar Days Worked: <span class="highlight text-2xl">${totalWorkedDays}</span></div>
+        <div class="text-base text-gray-700">(${fullDays} full, ${halfDays} half)</div>
+      `;
+      result.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
