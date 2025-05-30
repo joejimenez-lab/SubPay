@@ -2,11 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Substitute Teacher Pay Calculator</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    html, body {
+      width: 100%;
+      overflow-x: hidden;
+    }
     * {
       transition: all 0.5s ease-in-out;
     }
@@ -14,7 +18,6 @@
       font-family: 'Montserrat', sans-serif;
       background: linear-gradient(135deg, #ecfeff, #e0f7fa, #ffffff);
       color: #1e293b;
-      overflow-x: hidden;
       opacity: 0;
       animation: fadeIn 1.2s ease forwards;
     }
