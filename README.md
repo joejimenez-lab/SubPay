@@ -15,8 +15,8 @@ A beautifully designed, ultra-responsive web application to calculate earnings a
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/sub-pay-calculator.git
-cd sub-pay-calculator
+git clone https://github.com/joejimenez-lab/SubPay.git
+cd SubPay
 ```
 
 2. Open the `index.html` in your browser:
@@ -26,6 +26,9 @@ open index.html
 ```
 
 (Or just drag and drop the file into your browser.)
+
+Or open the live site:
+https://joejimenez-lab.github.io/SubPay/
 
 ## 🛠️ Technologies Used
 
