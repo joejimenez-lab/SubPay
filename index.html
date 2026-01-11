@@ -42,6 +42,12 @@
       box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
       backdrop-filter: blur(10px);
     }
+    .result-error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      box-shadow: 0 20px 60px rgba(239, 68, 68, 0.2);
+    }
     @keyframes riseFade {
       from { opacity: 0; transform: translateY(60px); }
       to { opacity: 1; transform: translateY(0); }
@@ -79,6 +85,9 @@
       .fancy-result, body {
         animation: none !important;
       }
+      body {
+        opacity: 1;
+      }
     }
   </style>
 </head>
@@ -91,7 +100,7 @@
         <p id="typing-text" class="mt-4 text-lg text-gray-600"></p>
       </header>
 
-       <form class="grid grid-cols-1 md:grid-cols-2 gap-6" aria-label="Pay input form">
+       <form id="payForm" class="grid grid-cols-1 md:grid-cols-2 gap-6" aria-label="Pay input form" novalidate>
         <div>
           <label for="fullDayRate" class="block text-sm font-semibold text-gray-700 mb-1">💵 Full Day Rate ($)</label>
           <input type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" id="fullDayRate" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="e.g., 225">
@@ -102,19 +111,26 @@
         </div>
         <div>
           <label for="fullDays" class="block text-sm font-semibold text-gray-700 mb-1">📅 Full Days Worked</label>
-          <input type="number" inputmode="numeric" pattern="[0-9]*" id="fullDays" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="e.g., 10">
+          <input type="number" inputmode="numeric" pattern="[0-9]*" id="fullDays" min="0" step="1" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="e.g., 10">
         </div>
         <div>
           <label for="halfDays" class="block text-sm font-semibold text-gray-700 mb-1">📆 Half Days Worked</label>
-          <input type="number" inputmode="numeric" pattern="[0-9]*" id="halfDays" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="e.g., 5">
+          <input type="number" inputmode="numeric" pattern="[0-9]*" id="halfDays" min="0" step="1" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="e.g., 5">
+        </div>
+        <div class="md:col-span-2 text-center mt-2">
+          <button type="submit" class="bg-gradient-to-r from-teal-400 to-blue-500 text-white font-semibold py-3 px-10 rounded-full text-lg shadow-xl hover:scale-105 transition-transform">✨ Calculate Total</button>
         </div>
       </form>
+      <article id="subResult" class="fancy-result mt-10 text-center text-xl font-medium text-gray-800 hidden p-6" aria-live="polite" aria-atomic="true" role="status"></article>
+      <noscript>
+        <p class="mt-6 text-center text-sm text-gray-600">Enable JavaScript to calculate totals.</p>
+      </noscript>
 
-      <div class="text-center mt-8">
-        <button onclick="calculateSubPay()" class="bg-gradient-to-r from-teal-400 to-blue-500 text-white font-semibold py-3 px-10 rounded-full text-lg shadow-xl hover:scale-105 transition-transform">✨ Calculate Total</button>
+      <div class="mt-10 text-center">
+        <a href="https://square.link/u/qomFmmac" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-lg transition-transform hover:scale-105">
+          ☕ Support Me / Buy Me a Coffee
+        </a>
       </div>
-
-      <article id="subResult" class="fancy-result mt-10 text-center text-xl font-medium text-gray-800 hidden p-6" aria-live="polite"></article>
 
       <footer class="mt-12 text-center text-sm text-gray-400">
         Designed by Joe Jimenez
@@ -123,47 +139,138 @@
   </main>
 
   <script>
+    const form = document.getElementById('payForm');
+    const result = document.getElementById('subResult');
+    const inputs = Array.from(document.querySelectorAll('#payForm input'));
+    const currencyFormatter = typeof Intl !== 'undefined' && Intl.NumberFormat
+      ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+      : { format: (value) => `$${value.toFixed(2)}` };
+
+    function parseMoney(value) {
+      const trimmed = value.trim();
+      if (trimmed === '') {
+        return 0;
+      }
+
+      const sanitized = trimmed.replace(/[\s$]/g, '');
+      const lastComma = sanitized.lastIndexOf(',');
+      const lastDot = sanitized.lastIndexOf('.');
+      let normalized = sanitized;
+
+      if (lastComma !== -1 && lastDot !== -1) {
+        if (lastComma > lastDot) {
+          normalized = sanitized.replace(/\./g, '').replace(',', '.');
+        } else {
+          normalized = sanitized.replace(/,/g, '');
+        }
+      } else if (lastComma !== -1) {
+        const commaCount = (sanitized.match(/,/g) || []).length;
+        normalized = commaCount > 1 ? sanitized.replace(/,/g, '') : sanitized.replace(/,/g, '.');
+      }
+
+      const number = Number(normalized);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function parseWholeDays(value) {
+      const trimmed = value.trim();
+      if (trimmed === '') {
+        return 0;
+      }
+
+      const number = Number(trimmed);
+      if (!Number.isFinite(number) || !Number.isInteger(number)) {
+        return null;
+      }
+
+      return number;
+    }
+
+    function showResult(html, isError = false) {
+      result.classList.remove('hidden');
+      result.classList.toggle('result-error', isError);
+      result.innerHTML = html;
+    }
+
     function calculateSubPay() {
-      const fullRate = parseFloat(document.getElementById('fullDayRate').value) || 0;
-      const halfRate = parseFloat(document.getElementById('halfDayRate').value) || 0;
-      const fullDays = parseInt(document.getElementById('fullDays').value) || 0;
-      const halfDays = parseInt(document.getElementById('halfDays').value) || 0;
+      const rawValues = inputs.map((input) => input.value.trim());
+      if (rawValues.every((value) => value === '')) {
+        showResult('<div class="text-lg font-semibold">Enter a rate and days worked to calculate your total.</div>', true);
+        return;
+      }
+
+      const fullRate = parseMoney(document.getElementById('fullDayRate').value);
+      const halfRate = parseMoney(document.getElementById('halfDayRate').value);
+      const fullDays = parseWholeDays(document.getElementById('fullDays').value);
+      const halfDays = parseWholeDays(document.getElementById('halfDays').value);
+
+      if (fullRate === null || halfRate === null) {
+        showResult('<div class="text-lg font-semibold">Enter valid dollar amounts for rates.</div>', true);
+        return;
+      }
+
+      if (fullDays === null || halfDays === null) {
+        showResult('<div class="text-lg font-semibold">Days worked must be whole numbers.</div>', true);
+        return;
+      }
+
+      if ([fullRate, halfRate, fullDays, halfDays].some((value) => value < 0)) {
+        showResult('<div class="text-lg font-semibold">Values cannot be negative.</div>', true);
+        return;
+      }
 
       const fullTotal = fullRate * fullDays;
       const halfTotal = halfRate * halfDays;
       const combinedTotal = fullTotal + halfTotal;
       const totalWorkedDays = fullDays + halfDays;
 
-      const result = document.getElementById('subResult');
-      result.innerHTML = `
+      showResult(`
         <div class="mb-4 text-3xl font-bold tracking-tight">
-          <span class="highlight-label">Total Pay:</span> <span class="highlight-value">$${combinedTotal.toFixed(2)}</span>
+          <span class="highlight-label">Total Pay:</span> <span class="highlight-value">${currencyFormatter.format(combinedTotal)}</span>
         </div>
         <div class="text-lg">
           <span class="highlight-label">Total Calendar Days Worked:</span> <span class="highlight-value text-2xl">${totalWorkedDays}</span>
         </div>
         <div class="text-base text-gray-700">(${fullDays} full, ${halfDays} half)</div>
-      `;
-      result.classList.remove('hidden');
+      `);
     }
 
-    // Typewriter animation
-    window.addEventListener('DOMContentLoaded', () => {
-      const text = "Calculate your total pay.";
-      const el = document.getElementById('typing-text');
-      let i = 0;
-      const speed = 120;
-
-      function type() {
-        if (i < text.length) {
-          el.textContent += text.charAt(i);
-          i++;
-          setTimeout(type, speed);
-        }
-      }
-
-      type();
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      calculateSubPay();
     });
+
+    inputs.forEach((input) => {
+      input.addEventListener('input', () => {
+        result.classList.add('hidden');
+        result.classList.remove('result-error');
+        result.innerHTML = '';
+      });
+    });
+
+    const text = "Calculate your total pay.";
+    const textEl = document.getElementById('typing-text');
+    const prefersReducedMotion = window.matchMedia
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
+    let i = 0;
+    const speed = 120;
+
+    function type() {
+      if (i < text.length) {
+        textEl.textContent += text.charAt(i);
+        i++;
+        setTimeout(type, speed);
+      }
+    }
+
+    if (textEl) {
+      if (prefersReducedMotion) {
+        textEl.textContent = text;
+      } else {
+        type();
+      }
+    }
   </script>
 </body>
 </html>
